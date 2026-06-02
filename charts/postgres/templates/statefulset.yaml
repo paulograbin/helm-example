@@ -17,6 +17,10 @@ spec:
       labels:
         app: postgres                  # ← NetworkPolicy uses this label to identify postgres pods
         release: {{ .Release.Name }}
+      annotations:
+        # Opt out of Istio sidecar — Postgres uses raw TCP, not HTTP.
+        # The sidecar can interfere with JDBC connection handling.
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
         - name: postgres
