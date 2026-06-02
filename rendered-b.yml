@@ -88,7 +88,7 @@ spec:
         - name: artifactory-credentials
       containers:
         - name: app-b
-          image: "common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0"
+          image: "common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -107,7 +107,7 @@ spec:
             httpGet:
               path: /health
               port: http
-            initialDelaySeconds: 20
+            initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
