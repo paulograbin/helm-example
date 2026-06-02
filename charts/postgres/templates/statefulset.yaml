@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: postgres
+    release: {{ .Release.Name }}
+spec:
+  serviceName: {{ .Release.Name }}
+  replicas: 1                          # Single instance for this demo
+  selector:
+    matchLabels:
+      app: postgres
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: postgres                  # ← NetworkPolicy uses this label to identify postgres pods
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          envFrom:
+            # Inject all keys from the Secret as environment variables
+            - secretRef:
+                name: {{ .Release.Name }}-credentials
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # Liveness: is postgres accepting connections?
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "{{ .Values.auth.username }}"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          # Readiness: should traffic be routed here?
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "{{ .Values.auth.username }}"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data

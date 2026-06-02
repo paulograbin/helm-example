@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-policy
+  labels:
+    app: app-b
+    release: {{ .Release.Name }}
+spec:
+  # Applies to App B pods
+  podSelector:
+    matchLabels:
+      app: app-b
+      release: {{ .Release.Name }}
+
+  policyTypes:
+    - Egress
+
+  egress:
+    # ALLOW: App B can talk to App A on port 8080 (cross-namespace)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: app-a
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # ALLOW: DNS resolution (without this, K8s service names won't resolve)
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # IMPLICIT DENY: Everything else is blocked.
+    # App B CANNOT reach postgres on port 5432 — there's no rule allowing it.
+    # This is the "default deny" behavior: once you specify policyTypes: [Egress]
+    # with explicit rules, anything not matching a rule is DROPPED.

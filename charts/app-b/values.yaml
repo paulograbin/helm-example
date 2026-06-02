@@ -1,0 +1,29 @@
+# App B configuration
+
+image:
+  repository: app-b
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicas: 2
+
+service:
+  port: 8080
+  type: ClusterIP
+
+# URL of App A — uses K8s cross-namespace DNS
+appA:
+  url: "http://app-a.backend.svc.cluster.local:8080"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+healthCheck:
+  path: /health
+  initialDelaySeconds: 15
+  periodSeconds: 10

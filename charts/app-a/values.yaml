@@ -1,0 +1,38 @@
+# App A configuration
+# Override with: helm install app-a ./charts/app-a -f custom-values.yaml
+
+image:
+  repository: app-a
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Number of pod replicas — this is what gives us high availability
+replicas: 2
+
+# Service configuration
+service:
+  port: 8080
+  type: ClusterIP
+
+# Database connection (references the postgres chart's service)
+database:
+  host: postgres            # This is the K8s Service name of our postgres chart
+  port: "5432"
+  name: demo
+  user: postgres
+  password: changeme-in-production
+
+# Pod resource limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Health check configuration
+healthCheck:
+  path: /health
+  initialDelaySeconds: 20
+  periodSeconds: 10

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: app-b
+description: Frontend Java service that consumes App A's API
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

@@ -1,0 +1,27 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
+
+# Java / Maven
+target/
+*.class
+*.jar
+!apps/**/src/**/*.jar
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes
+kubeconfig*.yaml
+
+# Helm
+charts/*/charts/
+*.tgz
+
+# Environment / secrets
+.env
+*.env.local

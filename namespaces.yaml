@@ -1,0 +1,22 @@
+# Namespaces provide logical isolation within a cluster.
+# Resources in one namespace are isolated from another by default
+# (unless you explicitly allow cross-namespace communication).
+#
+# The label kubernetes.io/metadata.name is auto-set by K8s and is used
+# by NetworkPolicies to select namespaces.
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend
+  labels:
+    purpose: data-services
+    jamba: laia
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    purpose: user-facing
+    boomboom: pow
