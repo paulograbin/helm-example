@@ -1,0 +1,117 @@
+---
+# Source: app-b/templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-b-policy
+  labels:
+    app: app-b
+    release: app-b
+spec:
+  # Applies to App B pods
+  podSelector:
+    matchLabels:
+      app: app-b
+      release: app-b
+
+  policyTypes:
+    - Egress
+
+  egress:
+    # ALLOW: App B can talk to App A on port 8080 (cross-namespace)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: app-a
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # ALLOW: DNS resolution (without this, K8s service names won't resolve)
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # IMPLICIT DENY: Everything else is blocked.
+    # App B CANNOT reach postgres on port 5432 — there's no rule allowing it.
+    # This is the "default deny" behavior: once you specify policyTypes: [Egress]
+    # with explicit rules, anything not matching a rule is DROPPED.
+
+---
+# Source: app-b/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-b
+  labels:
+    app: app-b
+    release: app-b
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: app-b
+    release: app-b
+
+---
+# Source: app-b/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-b
+  labels:
+    app: app-b
+    release: app-b
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-b
+      release: app-b
+  template:
+    metadata:
+      labels:
+        app: app-b
+        release: app-b
+    spec:
+      imagePullSecrets:
+        - name: artifactory-credentials
+      containers:
+        - name: app-b
+          image: "common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: APP_A_URL
+              value: "http://app-a.backend.svc.cluster.local:8080"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
