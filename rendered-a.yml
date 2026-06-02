@@ -1,0 +1,161 @@
+---
+# Source: app-a/templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-policy
+  labels:
+    app: app-a
+    release: app-a
+spec:
+  # This policy applies to App A pods
+  podSelector:
+    matchLabels:
+      app: app-a
+      release: app-a
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # INGRESS: Allow inbound traffic from App B (in the frontend namespace)
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: frontend
+          podSelector:
+            matchLabels:
+              app: app-b
+      ports:
+        - protocol: TCP
+          port: 8080
+
+  # EGRESS: Allow outbound to PostgreSQL and DNS
+  egress:
+    # Allow connecting to postgres
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow DNS resolution (required for service discovery to work)
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# Source: app-a/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-a-db-credentials
+  labels:
+    app: app-a
+    release: app-a
+type: Opaque
+# Secrets hold SENSITIVE data (passwords, API keys, certificates).
+# In production, use external-secrets-operator or sealed-secrets instead of
+# storing passwords in values.yaml.
+stringData:
+  DB_USER: postgres
+  DB_PASSWORD: changeme-in-production
+
+---
+# Source: app-a/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-a-config
+  labels:
+    app: app-a
+    release: app-a
+# ConfigMaps hold NON-SENSITIVE configuration.
+# These become environment variables in the pod.
+data:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: demo
+
+---
+# Source: app-a/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-a
+  labels:
+    app: app-a
+    release: app-a
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  # Route traffic to pods matching these labels
+  selector:
+    app: app-a
+    release: app-a
+
+---
+# Source: app-a/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-a
+  labels:
+    app: app-a
+    release: app-a
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-a
+      release: app-a
+  template:
+    metadata:
+      labels:
+        app: app-a                   # ← NetworkPolicy uses this label
+        release: app-a
+    spec:
+      containers:
+        - name: app-a
+          image: "app-a:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          # Inject non-sensitive config as env vars
+          envFrom:
+            - configMapRef:
+                name: app-a-config
+            # Inject sensitive config (DB credentials) as env vars
+            - secretRef:
+                name: app-a-db-credentials
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          # Liveness: restart the pod if it's dead
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          # Readiness: stop sending traffic if the pod isn't ready
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
