@@ -5,6 +5,9 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+imagePullSecrets:
+  - name: artifactory-credentials
+
 replicas: 2
 
 service:

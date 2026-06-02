@@ -17,6 +17,10 @@ spec:
         app: app-b
         release: {{ .Release.Name }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: app-b
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

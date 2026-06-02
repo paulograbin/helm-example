@@ -6,6 +6,10 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# SAP Artifactory requires authentication even for "public" repos
+imagePullSecrets:
+  - name: artifactory-credentials
+
 # Number of pod replicas — this is what gives us high availability
 replicas: 2
 
