@@ -11,5 +11,4 @@ spec:
   resources:
     requests:
       storage: {{ .Values.storage.size }}
-  # If you need a specific StorageClass (e.g., SSD), uncomment:
-  # storageClassName: {{ .Values.storage.storageClassName }}
+  storageClassName: {{ .Values.storage.storageClassName }}

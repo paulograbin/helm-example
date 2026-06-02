@@ -24,8 +24,8 @@ resources:
 
 # Persistent storage
 storage:
-  size: 1Gi
-  # storageClassName: "" # Leave empty for default StorageClass
+  size: 10Gi
+  storageClassName: default    # Kyma/Gardener provides a default StorageClass
 
 # Service configuration
 service:
