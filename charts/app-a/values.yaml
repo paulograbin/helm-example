@@ -2,8 +2,8 @@
 # Override with: helm install app-a ./charts/app-a -f custom-values.yaml
 
 image:
-  repository: app-a
-  tag: latest
+  repository: common.repositories.cloud.sap/artifactory/app-fnd-public/app-a
+  tag: "1.0.0"
   pullPolicy: IfNotPresent
 
 # SAP Artifactory requires authentication even for "public" repos
