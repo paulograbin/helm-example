@@ -1,12 +1,28 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# deploy.sh — Deploy the full helm-example stack to your cluster
+# deploy.sh — Deploy the full helm-example stack to a Kyma cluster
 #
 # Prerequisites:
-#   - kubectl configured and pointing at your cluster
+#   - kubectl configured and pointing at your Kyma cluster
+#     (export KUBECONFIG=path/to/kubeconfig.yaml)
 #   - helm v3 installed
-#   - Docker images built and loaded into the cluster
-#     (see README.md for image build instructions)
+#   - Docker images pushed to SAP Artifactory:
+#     docker login common.repositories.cloud.sap
+#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0 ./apps/app-a
+#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0 ./apps/app-b
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0
+#   - Registry secret created in both namespaces (run once after namespaces exist):
+#     kubectl create secret docker-registry artifactory-credentials \
+#       --docker-server=common.repositories.cloud.sap \
+#       --docker-username=I841059 \
+#       --docker-password=REDACTED \
+#       -n backend
+#     kubectl create secret docker-registry artifactory-credentials \
+#       --docker-server=common.repositories.cloud.sap \
+#       --docker-username=I841059 \
+#       --docker-password=REDACTED \
+#       -n frontend
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -14,9 +30,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# ─── Verify cluster connectivity ─────────────────────────────────────────────
 echo "═══════════════════════════════════════════════════════════════"
-echo "  Deploying helm-example stack"
+echo "  Deploying helm-example stack to Kyma"
 echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "▶ Verifying cluster connectivity..."
+kubectl cluster-info || { echo "ERROR: Cannot reach cluster. Check your KUBECONFIG."; exit 1; }
 
 # ─── Step 1: Create namespaces ────────────────────────────────────────────────
 echo ""
@@ -29,7 +49,7 @@ echo "▶ Deploying PostgreSQL to 'backend' namespace..."
 helm upgrade --install postgres ./charts/postgres \
   --namespace backend \
   --wait \
-  --timeout 120s
+  --timeout 180s
 
 # ─── Step 3: Deploy App A ─────────────────────────────────────────────────────
 echo ""
