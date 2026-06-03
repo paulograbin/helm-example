@@ -2,5 +2,5 @@ apiVersion: v2
 name: postgres
 description: A minimal PostgreSQL deployment for the helm-example demo
 type: application
-version: 1.0.0
+version: 0.0.1
 appVersion: "16"
