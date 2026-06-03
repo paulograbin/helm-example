@@ -29,32 +29,53 @@ cross-service communication, and NetworkPolicy enforcement.
 ## Prerequisites
 
 - Docker
-- kubectl configured against a cluster
+- kubectl configured against a Kyma cluster (`export KUBECONFIG=...`)
 - Helm v3
-- A cluster with a NetworkPolicy-capable CNI (e.g., Calico, Cilium)
-  - minikube: `minikube start --cni=calico`
-  - kind: use Calico or Cilium addon
+- Access to SAP Artifactory (`docker login common.repositories.cloud.sap`)
+- A cluster with a NetworkPolicy-capable CNI (Kyma uses Calico/Cilium by default)
 
 ## Quick Start
 
 ### 1. Build Docker images
 
+Images use a shared base layer that provides the JRE and non-root user setup.
+The base image **must be built and pushed first** — app images depend on it.
+
 ```bash
-docker build -t app-a:latest ./apps/app-a
-docker build -t app-b:latest ./apps/app-b
+# Login to SAP Artifactory
+docker login common.repositories.cloud.sap
+
+# Build and push the shared base image
+docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1 ./apps/base-image
+docker push common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1
+
+# Build and push the app images (they FROM the base image above)
+docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1 ./apps/app-a
+docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1 ./apps/app-b
+docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1
+docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1
 ```
 
-### 2. Load images into your local cluster
+### 2. Create registry pull secrets
 
-**kind:**
-```bash
-kind load docker-image app-a:latest app-b:latest
-```
+The cluster needs credentials to pull from Artifactory:
 
-**minikube:**
 ```bash
-minikube image load app-a:latest
-minikube image load app-b:latest
+# Create namespaces first
+kubectl apply -f namespaces.yaml
+
+# Create the pull secret in both namespaces
+kubectl create secret docker-registry artifactory-credentials \
+  --docker-server=common.repositories.cloud.sap \
+  --docker-username=YOUR_I_NUMBER \
+  --docker-password=YOUR_ARTIFACTORY_TOKEN \
+  -n backend
+
+kubectl create secret docker-registry artifactory-credentials \
+  --docker-server=common.repositories.cloud.sap \
+  --docker-username=YOUR_I_NUMBER \
+  --docker-password=YOUR_ARTIFACTORY_TOKEN \
+  -n frontend
 ```
 
 ### 3. Deploy everything
@@ -85,6 +106,7 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 ```
 .
 ├── apps/
+│   ├── base-image/     Shared base Docker image (JRE 17 + non-root user)
 │   ├── app-a/          Java backend (Javalin + JDBC → PostgreSQL)
 │   └── app-b/          Java frontend (Javalin + HttpClient → App A)
 ├── charts/
@@ -95,6 +117,29 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 ├── deploy.sh           One-command deploy
 └── README.md           This file
 ```
+
+## Docker Image Strategy
+
+```
+┌─────────────────────────────────────────────┐
+│         eclipse-temurin:17-jre-jammy         │  ← upstream (Adoptium)
+└─────────────────────┬───────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────┐
+│              base:0.0.1                      │  ← our shared base
+│  (WORKDIR /app, non-root user, EXPOSE 8080) │     apps/base-image/Dockerfile
+└───────────┬─────────────────────┬───────────┘
+            │                     │
+┌───────────▼───────────┐  ┌─────▼─────────────────┐
+│     app-a:0.0.1       │  │     app-b:0.0.1       │
+│  (+ app-a-1.0.0.jar)  │  │  (+ app-b-1.0.0.jar)  │
+└───────────────────────┘  └───────────────────────┘
+```
+
+**Why a shared base image?**
+- **Single point of update**: upgrade JRE or patch a CVE in one place
+- **Faster pulls**: K8s nodes cache shared layers — only the thin app JAR layer differs
+- **Consistency**: all services run with identical runtime configuration
 
 ## Common Helm Operations
 
@@ -153,4 +198,7 @@ The file has a TODO section explaining what's needed.
 | NetworkPolicy (egress) | `charts/app-b/templates/networkpolicy.yaml` |
 | Liveness/readiness probes | All deployment templates |
 | Multi-stage Docker builds | `apps/*/Dockerfile` |
-| Non-root containers | `apps/*/Dockerfile` (USER appuser) |
+| Shared base image | `apps/base-image/Dockerfile` → used by app-a and app-b |
+| Non-root containers | `apps/base-image/Dockerfile` (USER appuser) |
+| SAP Artifactory registry | `charts/*/values.yaml` (image.repository) |
+| Istio sidecar opt-out | `charts/postgres/templates/statefulset.yaml` |
