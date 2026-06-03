@@ -2,7 +2,7 @@
 # Override with: helm install app-a ./charts/app-a -f custom-values.yaml
 
 image:
-  repository: common.repositories.cloud.sap/artifactory/app-fnd-public/app-a
+  repository: app-fnd-public.common.repositories.cloud.sap/app-a
   tag: "0.0.1"
   pullPolicy: IfNotPresent
 

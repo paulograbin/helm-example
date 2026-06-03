@@ -1,7 +1,7 @@
 # App B configuration
 
 image:
-  repository: common.repositories.cloud.sap/artifactory/app-fnd-public/app-b
+  repository: app-fnd-public.common.repositories.cloud.sap/app-b
   tag: "0.0.1"
   pullPolicy: IfNotPresent
 
