@@ -12,17 +12,10 @@
 FROM maven:3.9-eclipse-temurin-17 AS build-base
 WORKDIR /app
 
-# Copy the union pom (contains deps from ALL apps) and download everything
+# Copy the union pom + dummy source, then run a full build.
+# This forces Maven to download ALL dependencies AND all default lifecycle plugins
+# (maven-resources-plugin, maven-compiler-plugin, maven-jar-plugin, maven-shade-plugin, etc.)
 COPY pom.xml .
-RUN mvn dependency:go-offline -B && \
-    mvn dependency:resolve-plugins -B
-
-# ─── Stage 2: Runtime base ────────────────────────────────────────────────────
-# Slim JRE image with non-root user — no build tools, no source code.
-FROM eclipse-temurin:17-jre-jammy AS runtime
-WORKDIR /app
-
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
-USER appuser
-
-EXPOSE 8080
+COPY src ./src
+RUN mvn package -DskipTests -B && \
+    rm -rf target
