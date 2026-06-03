@@ -3,7 +3,7 @@
 
 image:
   repository: common.repositories.cloud.sap/artifactory/app-fnd-public/app-a
-  tag: "1.0.0"
+  tag: "0.0.1"
   pullPolicy: IfNotPresent
 
 # SAP Artifactory requires authentication even for "public" repos

@@ -2,7 +2,7 @@
 
 image:
   repository: common.repositories.cloud.sap/artifactory/app-fnd-public/app-b
-  tag: "1.0.0"
+  tag: "0.0.1"
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
