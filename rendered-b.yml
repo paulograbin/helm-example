@@ -88,7 +88,7 @@ spec:
         - name: artifactory-credentials
       containers:
         - name: app-b
-          image: "common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0"
+          image: "app-fnd-public.common.repositories.cloud.sap/app-b:0.0.1"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
