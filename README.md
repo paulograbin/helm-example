@@ -118,6 +118,19 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 └── README.md           This file
 ```
 
+## Components
+
+| Component | What it does | Status |
+|-----------|-------------|--------|
+| **base-image** | Maven build stage with all deps pre-cached (eclipse-temurin:17) | Complete |
+| **App A** | Backend REST API — owns DB access (`/health`, `/items`) | TODO: `getItems()` and `createItem()` JDBC methods |
+| **App B** | Frontend proxy — forwards `/data` to App A over HTTP | Complete |
+| **Postgres chart** | StatefulSet, PVC, Secret, NetworkPolicy | TODO: NetworkPolicy selector is empty |
+| **App-A chart** | Deployment, Service, ConfigMap, Secret, NetworkPolicy | Complete |
+| **App-B chart** | Deployment, Service, egress NetworkPolicy | Complete |
+| **Makefile** | Builds/pushes images, renders templates, deploys, cleans up | Complete |
+| **deploy.sh** | Verbose step-by-step deploy with cluster connectivity check | Complete |
+
 ## Docker Image Strategy
 
 ```
