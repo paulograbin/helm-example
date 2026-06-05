@@ -40,8 +40,7 @@ public class AppA {
         app.get("/items", AppA::getItems);
         app.post("/items", AppA::createItem);
 
-            System.out.println("App A running on port 8080");
-        }
+        System.out.println("App A running on port 8080");
     }
 
     /**
@@ -89,25 +88,22 @@ public class AppA {
      *   - Javalin + Jackson will handle the JSON serialization
      */
     private static void getItems(Context ctx) {
-        // TODO: Your implementation here (roughly 8-12 lines)
-        // Steps:
-        //   1. Open a connection
-        //   2. Execute: SELECT id, name, created_at FROM items ORDER BY created_at DESC
-        //   3. Map ResultSet rows into a List<Map<String, Object>>
-        //   4. Return with ctx.json(list)
-        //
-        // Example skeleton:
-        //   try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
-        //        PreparedStatement ps = conn.prepareStatement("SELECT ...")) {
-        //       ResultSet rs = ps.executeQuery();
-        //       List<Map<String, Object>> items = new ArrayList<>();
-        //       while (rs.next()) { ... }
-        //       ctx.json(items);
-        //   } catch (SQLException e) {
-        //       ctx.status(500).result("DB error: " + e.getMessage());
-        //   }
-
-        ctx.status(501).result("Not implemented yet — your turn!");
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT id, name, created_at FROM items ORDER BY created_at DESC")) {
+            ResultSet rs = ps.executeQuery();
+            List<Map<String, Object>> items = new ArrayList<>();
+            while (rs.next()) {
+                items.add(Map.of(
+                    "id", rs.getInt("id"),
+                    "name", rs.getString("name"),
+                    "created_at", rs.getTimestamp("created_at").toString()
+                ));
+            }
+            ctx.json(items);
+        } catch (SQLException e) {
+            ctx.status(500).result("DB error: " + e.getMessage());
+        }
     }
 
     /**
@@ -122,28 +118,27 @@ public class AppA {
      *   - Return 201 status with the created item
      */
     private static void createItem(Context ctx) {
-        // TODO: Your implementation here (roughly 10-15 lines)
-        // Steps:
-        //   1. Parse the request body to get "name"
-        //   2. Open a connection
-        //   3. Execute: INSERT INTO items (name) VALUES (?) RETURNING id, name, created_at
-        //   4. Return 201 with the inserted row as JSON
-        //
-        // Example skeleton:
-        //   Map body = ctx.bodyAsClass(Map.class);
-        //   String name = (String) body.get("name");
-        //   if (name == null || name.isBlank()) {
-        //       ctx.status(400).result("Missing 'name' field");
-        //       return;
-        //   }
-        //   try (Connection conn = ...; PreparedStatement ps = ...) {
-        //       ps.setString(1, name);
-        //       ResultSet rs = ps.executeQuery();
-        //       ...
-        //       ctx.status(201).json(item);
-        //   }
-
-        ctx.status(501).result("Not implemented yet — your turn!");
+        Map body = ctx.bodyAsClass(Map.class);
+        String name = (String) body.get("name");
+        if (name == null || name.isBlank()) {
+            ctx.status(400).result("Missing 'name' field");
+            return;
+        }
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(
+                 "INSERT INTO items (name) VALUES (?) RETURNING id, name, created_at")) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ctx.status(201).json(Map.of(
+                    "id", rs.getInt("id"),
+                    "name", rs.getString("name"),
+                    "created_at", rs.getTimestamp("created_at").toString()
+                ));
+            }
+        } catch (SQLException e) {
+            ctx.status(500).result("DB error: " + e.getMessage());
+        }
     }
 
     /** Read an env var with a fallback default (for local development). */
