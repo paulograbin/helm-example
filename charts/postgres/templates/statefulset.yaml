@@ -29,6 +29,10 @@ spec:
           ports:
             - containerPort: 5432
               name: postgresql
+          env:
+            # Use a subdirectory so the PVC's lost+found doesn't block initdb
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           envFrom:
             # Inject all keys from the Secret as environment variables
             - secretRef:
