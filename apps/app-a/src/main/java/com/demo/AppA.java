@@ -35,10 +35,10 @@ public class AppA {
     public static void main(String[] args) {
         initDatabase();
 
-        try (Javalin app = Javalin.create().start(8080)) {
-            app.get("/health", ctx -> ctx.result("OK"));
-            app.get("/items", AppA::getItems);
-            app.post("/items", AppA::createItem);
+        Javalin app = Javalin.create().start(8080);
+        app.get("/health", ctx -> ctx.result("OK"));
+        app.get("/items", AppA::getItems);
+        app.post("/items", AppA::createItem);
 
             System.out.println("App A running on port 8080");
         }
