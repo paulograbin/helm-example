@@ -9,11 +9,13 @@ VERSION  := 0.0.1
 
 # ─── Top-level targets ────────────────────────────────────────────────────────
 
-all: push deploy           ## Build, push, and deploy everything
+all: render push deploy           ## Build, push, and deploy everything
 
 build: build-base build-app-a build-app-b  ## Build all images
 
 push: push-base push-app-a push-app-b     ## Push all images to registry
+
+render: render-a render-b
 
 deploy:                    ## Deploy all charts to the cluster
 	kubectl apply -f namespaces.yaml
@@ -41,6 +43,10 @@ push-app-a: build-app-a    ## Push app-a
 	@echo "▶ Pushing app-a..."
 	docker push $(REGISTRY)/app-a:$(VERSION)
 
+render-a:
+	@echo "Rendering CRD for app-a..."
+	helm template app-a ./charts/app-a/ -n backend -f charts/app-a/values.yaml > rendered-a.yml
+
 # ─── App B ────────────────────────────────────────────────────────────────────
 
 build-app-b: push-base     ## Build app-b (pushes base first)
@@ -50,6 +56,9 @@ build-app-b: push-base     ## Build app-b (pushes base first)
 push-app-b: build-app-b    ## Push app-b
 	@echo "▶ Pushing app-b..."
 	docker push $(REGISTRY)/app-b:$(VERSION)
+
+render-b:
+	helm template app-b ./charts/app-b/ -n backend -f charts/app-b/values.yaml > rendered-b.yml
 
 # ─── Cluster operations ──────────────────────────────────────────────────────
 
