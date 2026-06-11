@@ -1,0 +1,29 @@
+apiVersion: helm.example.io/v1alpha1
+kind: HelmRelease
+metadata:
+  name: app-a
+  namespace: helm-operator-system
+spec:
+  releaseName: app-a
+  chartPath: app-a
+  namespace: backend
+  timeoutSeconds: 120
+  values:
+    image:
+      repository: app-fnd-public.common.repositories.cloud.sap/app-a
+      tag: "0.0.1"   # bump this to trigger a new release
+      pullPolicy: Always
+    replicas: 2
+    database:
+      host: postgres
+      port: "5432"
+      name: demo
+      user: postgres
+      password: changeme-in-production
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

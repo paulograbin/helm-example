@@ -1,0 +1,25 @@
+apiVersion: helm.example.io/v1alpha1
+kind: HelmRelease
+metadata:
+  name: app-b
+  namespace: helm-operator-system
+spec:
+  releaseName: app-b
+  chartPath: app-b
+  namespace: frontend
+  timeoutSeconds: 120
+  values:
+    image:
+      repository: app-fnd-public.common.repositories.cloud.sap/app-b
+      tag: "0.0.1"   # bump this to trigger a new release
+      pullPolicy: Always
+    replicas: 2
+    appA:
+      url: "http://app-a.backend.svc.cluster.local:8080"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

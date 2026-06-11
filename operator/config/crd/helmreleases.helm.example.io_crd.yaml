@@ -1,0 +1,73 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: helmreleases.helm.example.io
+spec:
+  group: helm.example.io
+  names:
+    kind: HelmRelease
+    listKind: HelmReleaseList
+    plural: helmreleases
+    singular: helmrelease
+    shortNames:
+      - hr
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Release
+          type: string
+          jsonPath: .spec.releaseName
+        - name: LastDeployed
+          type: date
+          jsonPath: .status.lastDeployed
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - chartPath
+                - releaseName
+                - namespace
+              properties:
+                chartPath:
+                  type: string
+                  description: Chart subdirectory name (e.g. "app-a" → /charts/app-a in pod)
+                releaseName:
+                  type: string
+                  description: Helm release name passed to upgrade --install
+                namespace:
+                  type: string
+                  description: Target Kubernetes namespace for the Helm release
+                timeoutSeconds:
+                  type: integer
+                  default: 120
+                  description: Per-reconcile Helm operation timeout in seconds
+                values:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: Free-form Helm value overrides merged on top of chart defaults
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum:
+                    - Pending
+                    - Deploying
+                    - Deployed
+                    - Failed
+                lastDeployed:
+                  type: string
+                  format: date-time
+                message:
+                  type: string

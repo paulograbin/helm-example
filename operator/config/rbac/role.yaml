@@ -1,0 +1,42 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: helm-operator-manager-role
+rules:
+
+  # ── HelmRelease CRD ──────────────────────────────────────────────────────────
+  - apiGroups: ["helm.example.io"]
+    resources: ["helmreleases"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["helm.example.io"]
+    resources: ["helmreleases/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["helm.example.io"]
+    resources: ["helmreleases/finalizers"]
+    verbs: ["update"]
+
+  # ── Helm release history (stored as Secrets in target namespaces) ─────────────
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # ── Resources created by the charts ──────────────────────────────────────────
+  # app-a, app-b: Deployment, Service, ConfigMap, Secret, NetworkPolicy
+  # postgres: StatefulSet, Service, PVC, Secret, NetworkPolicy
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "configmaps", "persistentvolumeclaims", "namespaces"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # ── Controller-runtime leader election ────────────────────────────────────────
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
