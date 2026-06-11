@@ -8,21 +8,17 @@
 #   - helm v3 installed
 #   - Docker images pushed to SAP Artifactory:
 #     docker login common.repositories.cloud.sap
-#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0 ./apps/app-a
-#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0 ./apps/app-b
-#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:1.0.0
-#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:1.0.0
+#     # Build & push base images first (two targets from one Dockerfile):
+#     docker build --target build-base -t common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1-build ./apps/base-image
+#     docker build --target runtime    -t common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1       ./apps/base-image
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1-build
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1
+#     # Then build apps (they use both base stages — no Maven downloads needed):
+#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1 ./apps/app-a
+#     docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1 ./apps/app-b
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1
+#     docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1
 #   - Registry secret created in both namespaces (run once after namespaces exist):
-#     kubectl create secret docker-registry artifactory-credentials \
-#       --docker-server=common.repositories.cloud.sap \
-#       --docker-username=I841059 \
-#       --docker-password=REDACTED \
-#       -n backend
-#     kubectl create secret docker-registry artifactory-credentials \
-#       --docker-server=common.repositories.cloud.sap \
-#       --docker-username=I841059 \
-#       --docker-password=REDACTED \
-#       -n frontend
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
