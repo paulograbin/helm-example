@@ -25,3 +25,7 @@ charts/*/charts/
 # Environment / secrets
 .env
 *.env.local
+
+# Go
+operator/bin/
+operator/manager
