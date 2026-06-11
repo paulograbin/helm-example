@@ -73,6 +73,22 @@ status:                    ## Show pod status across both namespaces
 	@echo "── frontend ──"
 	@kubectl get pods -n frontend
 
+# ─── Operator ─────────────────────────────────────────────────────────────────
+
+operator-install:          ## Install operator CRD + RBAC
+	$(MAKE) -C operator install
+
+operator-deploy:           ## Build, push, deploy operator and apply sample CRs
+	$(MAKE) -C operator all-operator
+
+operator-status:           ## Show HelmRelease objects and operator pod status
+	$(MAKE) -C operator status-operator
+
+operator-logs:             ## Tail operator logs
+	$(MAKE) -C operator logs
+
+# ─── Cleanup ──────────────────────────────────────────────────────────────────
+
 clean:                     ## Uninstall all releases and delete namespaces
 	-helm uninstall app-b -n frontend
 	-helm uninstall app-a -n backend
