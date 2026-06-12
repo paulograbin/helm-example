@@ -17,11 +17,11 @@ push: push-base push-app-a push-app-b     ## Push all images to registry
 
 render: render-a render-b
 
-deploy:                    ## Deploy all charts to the cluster
-	kubectl apply -f namespaces.yaml
-	helm upgrade --install postgres ./charts/postgres --namespace backend --wait --timeout 180s
-	helm upgrade --install app-a ./charts/app-a --namespace backend --wait --timeout 120s
-	helm upgrade --install app-b ./charts/app-b --namespace frontend --wait --timeout 120s
+#deploy:                    ## Deploy all charts to the cluster
+#	kubectl apply -f namespaces.yaml
+#	helm upgrade --install postgres ./charts/postgres --namespace backend --wait --timeout 180s
+#	helm upgrade --install app-a ./charts/app-a --namespace backend --wait --timeout 120s
+#	helm upgrade --install app-b ./charts/app-b --namespace frontend --wait --timeout 120s
 
 # ─── Base image ───────────────────────────────────────────────────────────────
 
