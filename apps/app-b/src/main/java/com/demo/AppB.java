@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * App B — the "frontend/consumer" service.
@@ -31,6 +32,8 @@ public class AppB {
     private static final String APP_A_URL = env("APP_A_URL",
         "http://app-a.backend.svc.cluster.local:8080");
 
+    private static final String APP_VERSION = env("APP_VERSION", "unknown");
+
     // Java's built-in HTTP client — no external library needed
     private static final HttpClient httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(5))
@@ -40,6 +43,7 @@ public class AppB {
         Javalin app = Javalin.create().start(8080);
 
         app.get("/health", ctx -> ctx.result("OK"));
+        app.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
 
         // GET /data → forwards to App A's GET /items
         app.get("/data", ctx -> {

@@ -27,6 +27,7 @@ public class AppA {
     private static final String DB_NAME = env("DB_NAME", "demo");
     private static final String DB_USER = env("DB_USER", "postgres");
     private static final String DB_PASSWORD = env("DB_PASSWORD", "postgres");
+    private static final String APP_VERSION = env("APP_VERSION", "unknown");
 
     private static final String JDBC_URL = String.format(
         "jdbc:postgresql://%s:%s/%s", DB_HOST, DB_PORT, DB_NAME
@@ -37,6 +38,7 @@ public class AppA {
 
         Javalin app = Javalin.create().start(8080);
         app.get("/health", ctx -> ctx.result("OK"));
+        app.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
         app.get("/items", AppA::getItems);
         app.post("/items", AppA::createItem);
 
