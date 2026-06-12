@@ -123,8 +123,10 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 │   ├── app-a/          Helm chart: Deployment, Service, ConfigMap, Secret, NetworkPolicy
 │   ├── app-b/          Helm chart: Deployment, Service, NetworkPolicy
 │   └── postgres/       Helm chart: StatefulSet, Service, Secret, PVC, NetworkPolicy
+├── operator/           HelmRelease Kubernetes operator (Go + controller-runtime)
 ├── namespaces.yaml     Namespace definitions
-├── deploy.sh           One-command deploy
+├── deploy.sh           Verbose step-by-step deploy script
+├── Makefile            Build, push, deploy, and operator targets
 └── README.md           This file
 ```
 
@@ -133,13 +135,14 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 | Component | What it does | Status |
 |-----------|-------------|--------|
 | **base-image** | Maven build stage with all deps pre-cached (eclipse-temurin:17) | Complete |
-| **App A** | Backend REST API — owns DB access (`/health`, `/items`) | TODO: `getItems()` and `createItem()` JDBC methods |
+| **App A** | Backend REST API — owns DB access (`/health`, `/items` GET+POST) | Complete |
 | **App B** | Frontend proxy — forwards `/data` to App A over HTTP | Complete |
 | **Postgres chart** | StatefulSet, PVC, Secret, NetworkPolicy | TODO: NetworkPolicy selector is empty |
 | **App-A chart** | Deployment, Service, ConfigMap, Secret, NetworkPolicy | Complete |
 | **App-B chart** | Deployment, Service, egress NetworkPolicy | Complete |
-| **Makefile** | Builds/pushes images, renders templates, deploys, cleans up | Complete |
+| **Makefile** | Builds/pushes images, renders templates, deploys, operator targets | Complete |
 | **deploy.sh** | Verbose step-by-step deploy with cluster connectivity check | Complete |
+| **Operator** | HelmRelease CRD + controller — watches CRs and runs helm upgrade | Complete |
 
 ## Docker Image Strategy
 
@@ -192,16 +195,9 @@ helm uninstall postgres -n backend
 kubectl delete -f namespaces.yaml
 ```
 
-## TODO (Your Contributions)
+## TODO
 
-### 1. App A: Implement the database query methods
-
-File: `apps/app-a/src/main/java/com/demo/AppA.java`
-
-Implement `getItems()` and `createItem()` — the JDBC logic to read/write items.
-The file has detailed hints and a skeleton to guide you.
-
-### 2. PostgreSQL NetworkPolicy: Fill in the selector
+### PostgreSQL NetworkPolicy: Fill in the selector
 
 File: `charts/postgres/templates/networkpolicy.yaml`
 
@@ -225,3 +221,6 @@ The file has a TODO section explaining what's needed.
 | Non-root containers | `apps/base-image/Dockerfile` (USER appuser) |
 | SAP Artifactory registry | `charts/*/values.yaml` (image.repository) |
 | Istio sidecar opt-out | `charts/postgres/templates/statefulset.yaml` |
+| Custom Kubernetes operator | `operator/` — HelmRelease CRD + controller-runtime |
+| Operator RBAC | `operator/config/rbac/` |
+| GitOps-style release workflow | `operator/config/samples/` + HelmRelease CRs |
