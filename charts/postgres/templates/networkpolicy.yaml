@@ -6,36 +6,9 @@ metadata:
     app: postgres
     release: {{ .Release.Name }}
 spec:
-  # ─────────────────────────────────────────────────────────────────────────────
-  # TODO: Your implementation here!
-  #
-  # Goal: Only allow App A (in the backend namespace) to connect to PostgreSQL
-  #       on port 5432. Block everything else.
-  #
-  # You need to fill in THREE sections:
-  #
-  # 1. podSelector — which pods does this policy APPLY TO?
-  #    (Hint: select pods with label "app: postgres")
-  #
-  # 2. policyTypes — what directions are we controlling?
-  #    (Hint: we want to restrict who can send traffic IN to postgres)
-  #
-  # 3. ingress — the allow rules. Who CAN connect?
-  #    (Hint: use a combination of namespaceSelector + podSelector to match
-  #     only pods labeled "app: app-a" in the "backend" namespace)
-  #
-  # Key concepts:
-  #   - A NetworkPolicy with policyTypes: ["Ingress"] and NO ingress rules = DENY ALL
-  #   - Adding an ingress rule creates an ALLOW exception
-  #   - podSelector at the top = "this policy applies to pods matching..."
-  #   - ingress[].from[].podSelector = "allow FROM pods matching..."
-  #
-  # Structure to fill in:
-  # ─────────────────────────────────────────────────────────────────────────────
-
   podSelector:
     matchLabels:
-      app: postgres          # TODO: Which pods should this policy protect?
+      app: postgres
       release: {{ .Release.Name }}
 
   policyTypes:
@@ -47,20 +20,9 @@ spec:
             matchLabels:
               app: app-a
               release: {{ .Release.Name }}
-        - namespaceSelector:
+          namespaceSelector:
             matchLabels:
-              kubernetes.io/medatada.name: backend
-
-        # TODO: Add a rule that allows traffic only from App A
-        # Hint: you need both a podSelector and a namespaceSelector here
-        #
-        # - podSelector:
-        #     matchLabels:
-        #       ???: ???
-        #   namespaceSelector:
-        #     matchLabels:
-        #       ???: ???
-        []
+              kubernetes.io/metadata.name: backend
       ports:
         - protocol: TCP
           port: 5432
