@@ -1,7 +1,7 @@
 # Helm Example: Two Java Apps + PostgreSQL
 
 A hands-on Helm learning project demonstrating multi-namespace deployments,
-cross-service communication, and NetworkPolicy enforcement.
+cross-service communication, NetworkPolicy enforcement, and a custom Kubernetes operator.
 
 ## Architecture
 
@@ -24,6 +24,13 @@ cross-service communication, and NetworkPolicy enforcement.
 │  └───────────┘                                            │
 │                                                           │
 └─────────────────── namespace: frontend ──────────────────┘
+
+┌─────────────────── namespace: helm-operator-system ───────┐
+│  ┌──────────────────────────────────────────────┐         │
+│  │  HelmRelease Operator                        │         │
+│  │  watches HelmRelease CRs → helm upgrade      │         │
+│  └──────────────────────────────────────────────┘         │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ## Prerequisites
