@@ -1,6 +1,6 @@
 # ─── Stage 1: Build ───────────────────────────────────────────────────────────
 # Inherits from the build-base which already has all Maven deps cached in /root/.m2
-FROM app-fnd-public.common.repositories.cloud.sap/base:0.0.1 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /app
 COPY pom.xml .
 # No download needed — deps are already in the base image's Maven cache
