@@ -167,6 +167,86 @@ kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.
 - **Faster pulls**: K8s nodes cache shared layers — only the thin app JAR layer differs
 - **Consistency**: all services run with identical runtime configuration
 
+## Operator
+
+The `operator/` directory contains a Kubernetes operator that manages Helm releases via a custom `HelmRelease` CRD. It enables a GitOps-style workflow: the app team bumps an image tag in a `HelmRelease` YAML, commits it, and the operator reconciles the change automatically.
+
+### How it works
+
+```
+App team commits HelmRelease CR
+        ↓
+Operator watches for CR changes
+        ↓
+Runs helm upgrade --install via Helm SDK
+        ↓
+Updates CR status (Deploying → Deployed / Failed)
+```
+
+Charts are **bundled inside the operator image** at `/charts/` — updating a chart requires rebuilding and pushing the operator image.
+
+### Operator structure
+
+```
+operator/
+├── api/v1alpha1/           HelmRelease CRD Go types
+├── controllers/            Reconcile loop
+├── internal/helm/          Helm SDK wrapper (runner + RESTClientGetter)
+├── config/
+│   ├── crd/                CRD YAML manifest
+│   ├── rbac/               ServiceAccount, ClusterRole, ClusterRoleBinding
+│   ├── manager/            Operator Deployment
+│   └── samples/            Example HelmRelease CRs for all three apps
+├── main.go
+└── Dockerfile              Multi-stage build, bundles charts/ from repo root
+```
+
+### Installing the operator
+
+```bash
+# 1. Build and push the operator image (build context = repo root)
+make operator-deploy
+
+# Or step by step:
+cd operator
+make docker-push       # build + push image
+make install           # apply CRD + RBAC
+kubectl apply -f config/manager/deployment.yaml
+make apply-samples     # create HelmRelease CRs
+```
+
+**Prerequisites for the operator namespace:**
+
+```bash
+kubectl create namespace helm-operator-system
+
+kubectl create secret docker-registry artifactory-credentials \
+  --docker-server=app-fnd-public.common.repositories.cloud.sap \
+  --docker-username=YOUR_I_NUMBER \
+  --docker-password=YOUR_ARTIFACTORY_TOKEN \
+  -n helm-operator-system
+```
+
+### Triggering a release (app team workflow)
+
+Edit a sample CR and apply it:
+
+```bash
+# Bump the image tag for app-a
+kubectl patch helmrelease app-a -n helm-operator-system \
+  --type=merge -p '{"spec":{"values":{"image":{"tag":"0.0.2"}}}}'
+
+# Watch reconciliation
+kubectl get hr -n helm-operator-system -w
+```
+
+### Operator status
+
+```bash
+make operator-status    # show HelmRelease objects + operator pod
+make operator-logs      # tail operator logs
+```
+
 ## Common Helm Operations
 
 ```bash
