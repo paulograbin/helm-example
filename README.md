@@ -145,29 +145,6 @@ kubectl exec -n backend deploy/app-a -- wget -qO- \
 | **deploy.sh** | Verbose step-by-step deploy with cluster connectivity check | Complete |
 | **Operator** | HelmRelease CRD + controller — watches CRs and runs helm upgrade | Complete |
 
-## Docker Image Strategy
-
-```
-┌─────────────────────────────────────────────┐
-│         eclipse-temurin:17-jre-jammy         │  ← upstream (Adoptium)
-└─────────────────────┬───────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────┐
-│              base:0.0.1                      │  ← our shared base
-│  (WORKDIR /app, non-root user, EXPOSE 8080) │     apps/base-image/Dockerfile
-└───────────┬─────────────────────┬───────────┘
-            │                     │
-┌───────────▼───────────┐  ┌─────▼─────────────────┐
-│     app-a:0.0.1       │  │     app-b:0.0.1       │
-│  (+ app-a-1.0.0.jar)  │  │  (+ app-b-1.0.0.jar)  │
-└───────────────────────┘  └───────────────────────┘
-```
-
-**Why a shared base image?**
-- **Single point of update**: upgrade JRE or patch a CVE in one place
-- **Faster pulls**: K8s nodes cache shared layers — only the thin app JAR layer differs
-- **Consistency**: all services run with identical runtime configuration
-
 ## Operator
 
 The `operator/` directory contains a Kubernetes operator that manages Helm releases via a custom `HelmRelease` CRD. It enables a GitOps-style workflow: the app team bumps an image tag in a `HelmRelease` YAML, commits it, and the operator reconciles the change automatically.
@@ -284,6 +261,38 @@ File: `charts/postgres/templates/networkpolicy.yaml`
 
 Complete the NetworkPolicy that restricts Postgres access to only App A.
 The file has a TODO section explaining what's needed.
+
+## Endpoints
+
+### External (publicly accessible)
+
+No external endpoints are currently exposed. All services are `ClusterIP` (cluster-internal only).
+To expose an app externally, create an Istio VirtualService pointing at `kyma-system/kyma-gateway`.
+The cluster domain is `*.c-4a62d63.stage.kyma.ondemand.com`.
+
+### Internal (cluster-only)
+
+| Service | DNS | Port | Protocol |
+|---------|-----|------|----------|
+| App A | `app-a.backend.svc.cluster.local` | 8080 | HTTP |
+| App B | `app-b.frontend.svc.cluster.local` | 8080 | HTTP |
+| PostgreSQL | `postgres.backend.svc.cluster.local` | 5432 | TCP |
+
+### App A API (`app-a.backend.svc.cluster.local:8080`)
+
+| Method | Path | Description | Response |
+|--------|------|-------------|----------|
+| `GET` | `/health` | Liveness/readiness probe | `200 OK` |
+| `GET` | `/items` | List all items from PostgreSQL | `200` JSON array |
+| `POST` | `/items` | Create a new item `{"name": "..."}` | `201` JSON object |
+
+### App B API (`app-b.frontend.svc.cluster.local:8080`)
+
+| Method | Path | Description | Response |
+|--------|------|-------------|----------|
+| `GET` | `/health` | Liveness/readiness probe | `200 OK` |
+| `GET` | `/data` | Proxy to App A `GET /items` | `200` JSON array |
+| `POST` | `/data` | Proxy to App A `POST /items` | `201` JSON object |
 
 ## Key Concepts Demonstrated
 
