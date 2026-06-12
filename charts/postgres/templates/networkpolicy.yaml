@@ -19,7 +19,7 @@ spec:
         - podSelector:
             matchLabels:
               app: app-a
-              release: {{ .Release.Name }}
+              release: app-a
           namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: backend
