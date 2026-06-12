@@ -10,7 +10,7 @@ RUN mvn package -DskipTests -B
 
 # ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
 # Using jammy (Ubuntu 22.04) — supports both amd64 and arm64 natively
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/app-a-0.0.1.jar app.jar
 

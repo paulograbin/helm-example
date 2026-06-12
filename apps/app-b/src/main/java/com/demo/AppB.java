@@ -40,43 +40,45 @@ public class AppB {
         .build();
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create().start(8080);
+        Javalin app = Javalin.create(config -> {
+            config.routes.get("/health", ctx -> ctx.result("OK"));
+            config.routes.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
+            config.routes.get("/java", ctx -> ctx.json(Map.of("java", System.getProperty("java.version"))));
 
-        app.get("/health", ctx -> ctx.result("OK"));
-        app.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
+            // GET /data → forwards to App A's GET /items
+            config.routes.get("/data", ctx -> {
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(APP_A_URL + "/items"))
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
 
-        // GET /data → forwards to App A's GET /items
-        app.get("/data", ctx -> {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(APP_A_URL + "/items"))
-                .timeout(Duration.ofSeconds(10))
-                .GET()
-                .build();
+                HttpResponse<String> response = httpClient.send(request,
+                    HttpResponse.BodyHandlers.ofString());
 
-            HttpResponse<String> response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString());
+                ctx.status(response.statusCode())
+                   .contentType("application/json")
+                   .result(response.body());
+            });
 
-            ctx.status(response.statusCode())
-               .contentType("application/json")
-               .result(response.body());
+            // POST /data → forwards to App A's POST /items
+            config.routes.post("/data", ctx -> {
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(APP_A_URL + "/items"))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(ctx.body()))
+                    .build();
+
+                HttpResponse<String> response = httpClient.send(request,
+                    HttpResponse.BodyHandlers.ofString());
+
+                ctx.status(response.statusCode())
+                   .contentType("application/json")
+                   .result(response.body());
+            });
         });
-
-        // POST /data → forwards to App A's POST /items
-        app.post("/data", ctx -> {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(APP_A_URL + "/items"))
-                .timeout(Duration.ofSeconds(10))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(ctx.body()))
-                .build();
-
-            HttpResponse<String> response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString());
-
-            ctx.status(response.statusCode())
-               .contentType("application/json")
-               .result(response.body());
-        });
+        app.start(8080);
 
         System.out.println("App B running on port 8080 — proxying to " + APP_A_URL);
     }

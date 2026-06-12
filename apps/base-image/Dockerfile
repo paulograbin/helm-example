@@ -9,7 +9,7 @@
 # ─── Stage 1: Build base ─────────────────────────────────────────────────────
 # Maven + JDK + ALL dependencies pre-fetched into /root/.m2
 # App Dockerfiles inherit this so they skip the download step entirely.
-FROM maven:3.9-eclipse-temurin-17 AS build-base
+FROM maven:3.9-eclipse-temurin-25 AS build-base
 WORKDIR /app
 
 # Copy the union pom + dummy source, then run a full build.

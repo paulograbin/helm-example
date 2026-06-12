@@ -36,11 +36,14 @@ public class AppA {
     public static void main(String[] args) {
         initDatabase();
 
-        Javalin app = Javalin.create().start(8080);
-        app.get("/health", ctx -> ctx.result("OK"));
-        app.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
-        app.get("/items", AppA::getItems);
-        app.post("/items", AppA::createItem);
+        Javalin app = Javalin.create(config -> {
+            config.routes.get("/health", ctx -> ctx.result("OK"));
+            config.routes.get("/version", ctx -> ctx.json(Map.of("version", APP_VERSION)));
+            config.routes.get("/java", ctx -> ctx.json(Map.of("java", System.getProperty("java.version"))));
+            config.routes.get("/items", AppA::getItems);
+            config.routes.post("/items", AppA::createItem);
+        });
+        app.start(8080);
 
         System.out.println("App A running on port 8080");
     }
