@@ -1,6 +1,6 @@
 PLATFORM := linux/amd64
 REGISTRY := app-fnd-public.common.repositories.cloud.sap
-VERSION  := 0.0.2
+VERSION  := 1.0.0
 
 .PHONY: all build push deploy clean help \
         build-app-a build-app-b \
