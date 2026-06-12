@@ -3,17 +3,17 @@ REGISTRY := app-fnd-public.common.repositories.cloud.sap
 VERSION  := 0.0.2
 
 .PHONY: all build push deploy clean help \
-        build-base build-app-a build-app-b \
-        push-base push-app-a push-app-b \
+        build-app-a build-app-b \
+        push-app-a push-app-b \
         restart status
 
 # ─── Top-level targets ────────────────────────────────────────────────────────
 
-all: render push deploy           ## Build, push, and deploy everything
+all: push deploy           ## Build, push, and deploy everything
 
-build: build-base build-app-a build-app-b  ## Build all images
+build: build-app-a build-app-b  ## Build all images
 
-push: push-base push-app-a push-app-b     ## Push all images to registry
+push: push-app-a push-app-b     ## Push all images to registry
 
 render: render-a render-b
 
@@ -23,19 +23,9 @@ render: render-a render-b
 #	helm upgrade --install app-a ./charts/app-a --namespace backend --wait --timeout 120s
 #	helm upgrade --install app-b ./charts/app-b --namespace frontend --wait --timeout 120s
 
-# ─── Base image ───────────────────────────────────────────────────────────────
-
-build-base:                ## Build the shared base image
-	@echo "▶ Building base image..."
-	docker build --platform $(PLATFORM) -t $(REGISTRY)/base:$(VERSION) apps/base-image/
-
-push-base: build-base      ## Push base image (builds first if needed)
-	@echo "▶ Pushing base image..."
-	docker push $(REGISTRY)/base:$(VERSION)
-
 # ─── App A ────────────────────────────────────────────────────────────────────
 
-build-app-a: push-base     ## Build app-a (pushes base first — app-a pulls it from registry)
+build-app-a:      ## Build app-a
 	@echo "▶ Building app-a..."
 	docker build --platform $(PLATFORM) -t $(REGISTRY)/app-a:$(VERSION) apps/app-a/
 
@@ -49,7 +39,7 @@ render-a:
 
 # ─── App B ────────────────────────────────────────────────────────────────────
 
-build-app-b: push-base     ## Build app-b (pushes base first)
+build-app-b:      ## Build app-b
 	@echo "▶ Building app-b..."
 	docker build --platform $(PLATFORM) -t $(REGISTRY)/app-b:$(VERSION) apps/app-b/
 

@@ -1,12 +1,9 @@
 # ─── Stage 1: Build ───────────────────────────────────────────────────────────
-# Inherits from the build-base which already has all Maven deps cached in /root/.m2
 FROM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /app
 COPY pom.xml .
-# No download needed — deps are already in the base image's Maven cache
 COPY src ./src
 RUN mvn package -DskipTests -B
-# -o (offline) ensures we ONLY use cached deps — fails fast if something is missing
 
 # ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
 # Using jammy (Ubuntu 22.04) — supports both amd64 and arm64 natively

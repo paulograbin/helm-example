@@ -46,14 +46,11 @@ cross-service communication, NetworkPolicy enforcement, and a custom Kubernetes 
 
 ### 1. Build Docker images
 
-Images use a shared base layer that provides the JRE and non-root user setup.
-The base image **must be built and pushed first** — app images depend on it.
-
 ```bash
 # Login to SAP Artifactory
 docker login app-fnd-public.common.repositories.cloud.sap
 
-# Build and push all images (base → app-a → app-b)
+# Build and push all images
 make push
 ```
 
@@ -117,7 +114,6 @@ kubectl exec -n backend deploy/app-a -- wget -qO- \
 ```
 .
 ├── apps/
-│   ├── base-image/     Shared base Docker image (JRE 17 + non-root user)
 │   ├── app-a/          Java backend (Javalin + JDBC → PostgreSQL)
 │   └── app-b/          Java frontend (Javalin + HttpClient → App A)
 ├── charts/
@@ -135,7 +131,6 @@ kubectl exec -n backend deploy/app-a -- wget -qO- \
 
 | Component | What it does | Status |
 |-----------|-------------|--------|
-| **base-image** | Maven build stage with all deps pre-cached (eclipse-temurin:17) | Complete |
 | **App A** | Backend REST API — owns DB access (`/health`, `/items` GET+POST) | Complete |
 | **App B** | Frontend proxy — forwards `/data` to App A over HTTP | Complete |
 | **Postgres chart** | StatefulSet, PVC, Secret, NetworkPolicy | TODO: NetworkPolicy selector is empty |
@@ -309,8 +304,7 @@ The cluster domain is `*.c-4a62d63.stage.kyma.ondemand.com`.
 | NetworkPolicy (egress) | `charts/app-b/templates/networkpolicy.yaml` |
 | Liveness/readiness probes | All deployment templates |
 | Multi-stage Docker builds | `apps/*/Dockerfile` |
-| Shared base image | `apps/base-image/Dockerfile` → used by app-a and app-b |
-| Non-root containers | `apps/base-image/Dockerfile` (USER appuser) |
+| Non-root containers | `apps/*/Dockerfile` (USER appuser) |
 | SAP Artifactory registry | `charts/*/values.yaml` (image.repository) |
 | Istio sidecar opt-out | `charts/postgres/templates/statefulset.yaml` |
 | Custom Kubernetes operator | `operator/` — HelmRelease CRD + controller-runtime |
