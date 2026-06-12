@@ -283,6 +283,7 @@ The cluster domain is `*.c-4a62d63.stage.kyma.ondemand.com`.
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
 | `GET` | `/health` | Liveness/readiness probe | `200 OK` |
+| `GET` | `/version` | Image version | `200 {"version": "0.0.1"}` |
 | `GET` | `/items` | List all items from PostgreSQL | `200` JSON array |
 | `POST` | `/items` | Create a new item `{"name": "..."}` | `201` JSON object |
 
@@ -291,6 +292,7 @@ The cluster domain is `*.c-4a62d63.stage.kyma.ondemand.com`.
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
 | `GET` | `/health` | Liveness/readiness probe | `200 OK` |
+| `GET` | `/version` | Image version | `200 {"version": "0.0.1"}` |
 | `GET` | `/data` | Proxy to App A `GET /items` | `200` JSON array |
 | `POST` | `/data` | Proxy to App A `POST /items` | `201` JSON object |
 
