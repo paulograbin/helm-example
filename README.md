@@ -40,17 +40,16 @@ cross-service communication, NetworkPolicy enforcement, and a custom Kubernetes 
 - Helm v3
 - Go 1.22+ (for building the operator)
 - Access to SAP Artifactory (`docker login app-fnd-public.common.repositories.cloud.sap`)
-- A cluster with a NetworkPolicy-capable CNI (Kyma uses Calico/Cilium by default)
 
 ## Quick Start
 
-### 1. Build Docker images
+### 1. Build and push Docker images
 
 ```bash
 # Login to SAP Artifactory
 docker login app-fnd-public.common.repositories.cloud.sap
 
-# Build and push all images
+# Build and push app-a and app-b
 make push
 ```
 
@@ -100,13 +99,17 @@ kubectl exec -n frontend deploy/app-b -- nc -zv -w3 postgres.backend.svc.cluster
 
 # Test: App A → Postgres (should SUCCEED)
 kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.local 5432
+```
 
-# Test the API
-kubectl exec -n backend deploy/app-a -- wget -qO- http://localhost:8080/items
-kubectl exec -n backend deploy/app-a -- wget -qO- \
-  --header='Content-Type: application/json' \
-  --post-data='{"name":"my-item"}' \
-  http://localhost:8080/items
+### 5. Monitor locally
+
+Port-forward both apps and run the monitoring page:
+
+```bash
+kubectl port-forward svc/app-a 8080:8080 -n backend &
+kubectl port-forward svc/app-b 8081:8080 -n frontend &
+python3 proxy.py
+# Open http://localhost:3000/monitor.html
 ```
 
 ## Project Structure
@@ -122,6 +125,8 @@ kubectl exec -n backend deploy/app-a -- wget -qO- \
 │   └── postgres/       Helm chart: StatefulSet, Service, Secret, PVC, NetworkPolicy
 ├── operator/           HelmRelease Kubernetes operator (Go + controller-runtime)
 ├── namespaces.yaml     Namespace definitions
+├── monitor.html        Local monitoring dashboard (polls /health, /version, /java)
+├── proxy.py            Local proxy server — serves monitor.html and proxies to port-forwarded apps
 ├── deploy.sh           Verbose step-by-step deploy script
 ├── Makefile            Build, push, deploy, and operator targets
 └── README.md           This file
