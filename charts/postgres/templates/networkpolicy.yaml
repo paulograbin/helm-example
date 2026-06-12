@@ -34,13 +34,23 @@ spec:
   # ─────────────────────────────────────────────────────────────────────────────
 
   podSelector:
-    matchLabels: {}          # TODO: Which pods should this policy protect?
+    matchLabels:
+      app: postgres          # TODO: Which pods should this policy protect?
+      release: {{ .Release.Name }}
 
   policyTypes:
     - Ingress                # We're controlling inbound traffic
 
   ingress:
     - from:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              release: {{ .Release.Name }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/medatada.name: backend
+
         # TODO: Add a rule that allows traffic only from App A
         # Hint: you need both a podSelector and a namespaceSelector here
         #
