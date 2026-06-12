@@ -96,6 +96,8 @@ spec:
           env:
             - name: APP_A_URL
               value: "http://app-a.backend.svc.cluster.local:8080"
+            - name: APP_VERSION
+              value: "0.0.1"
           resources:
             limits:
               cpu: 500m
