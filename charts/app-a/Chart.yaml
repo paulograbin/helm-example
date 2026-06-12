@@ -2,5 +2,5 @@ apiVersion: v2
 name: app-a
 description: Backend Java service with PostgreSQL access
 type: application
-version: 0.0.1
-appVersion: "0.0.1"
+version: 0.0.3
+appVersion: "0.0.3"

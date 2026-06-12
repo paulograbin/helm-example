@@ -11,9 +11,9 @@ spec:
   values:
     image:
       repository: app-fnd-public.common.repositories.cloud.sap/app-a
-      tag: "0.0.1"   # bump this to trigger a new release
+      tag: "0.0.3"   # bump this to trigger a new release
       pullPolicy: Always
-    replicas: 2
+    replicas: 3
     database:
       host: postgres
       port: "5432"
