@@ -11,7 +11,7 @@ spec:
   values:
     image:
       repository: app-fnd-public.common.repositories.cloud.sap/app-b
-      tag: "0.0.3"   # bump this to trigger a new release
+      tag: "1.0.0"   # bump this to trigger a new release
       pullPolicy: Always
     replicas: 1
     appA:
