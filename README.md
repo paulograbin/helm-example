@@ -253,46 +253,39 @@ helm uninstall postgres -n backend
 kubectl delete -f namespaces.yaml
 ```
 
-## TODO
-
-### PostgreSQL NetworkPolicy: Fill in the selector
-
-File: `charts/postgres/templates/networkpolicy.yaml`
-
-Complete the NetworkPolicy that restricts Postgres access to only App A.
-The file has a TODO section explaining what's needed.
-
 ## Endpoints
 
-### External (publicly accessible)
+### External
 
-No external endpoints are currently exposed. All services are `ClusterIP` (cluster-internal only).
-To expose an app externally, create an Istio VirtualService pointing at `kyma-system/kyma-gateway`.
-The cluster domain is `*.c-4a62d63.stage.kyma.ondemand.com`.
+No external endpoints are currently exposed. All services are `ClusterIP`.
+To expose externally, create an Istio VirtualService pointing at `kyma-system/kyma-gateway`.
+Cluster domain: `*.c-4a62d63.stage.kyma.ondemand.com`
 
-### Internal (cluster-only)
+### Internal
 
-| Service | DNS | Port | Protocol |
-|---------|-----|------|----------|
-| App A | `app-a.backend.svc.cluster.local` | 8080 | HTTP |
-| App B | `app-b.frontend.svc.cluster.local` | 8080 | HTTP |
-| PostgreSQL | `postgres.backend.svc.cluster.local` | 5432 | TCP |
+| Service | DNS | Port |
+|---------|-----|------|
+| App A | `app-a.backend.svc.cluster.local` | 8080 |
+| App B | `app-b.frontend.svc.cluster.local` | 8080 |
+| PostgreSQL | `postgres.backend.svc.cluster.local` | 5432 |
 
 ### App A API (`app-a.backend.svc.cluster.local:8080`)
 
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
 | `GET` | `/health` | Liveness/readiness probe | `200 OK` |
-| `GET` | `/version` | Image version | `200 {"version": "0.0.1"}` |
+| `GET` | `/version` | Image tag | `200 {"version": "1.0.0"}` |
+| `GET` | `/java` | JVM version | `200 {"java": "25.x.x"}` |
 | `GET` | `/items` | List all items from PostgreSQL | `200` JSON array |
-| `POST` | `/items` | Create a new item `{"name": "..."}` | `201` JSON object |
+| `POST` | `/items` | Create item `{"name": "..."}` | `201` JSON object |
 
 ### App B API (`app-b.frontend.svc.cluster.local:8080`)
 
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
 | `GET` | `/health` | Liveness/readiness probe | `200 OK` |
-| `GET` | `/version` | Image version | `200 {"version": "0.0.1"}` |
+| `GET` | `/version` | Image tag | `200 {"version": "1.0.0"}` |
+| `GET` | `/java` | JVM version | `200 {"java": "25.x.x"}` |
 | `GET` | `/data` | Proxy to App A `GET /items` | `200` JSON array |
 | `POST` | `/data` | Proxy to App A `POST /items` | `201` JSON object |
 
