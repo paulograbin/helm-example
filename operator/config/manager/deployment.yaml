@@ -27,7 +27,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: manager
-          image: app-fnd-public.common.repositories.cloud.sap/helm-operator:0.0.4
+          image: app-fnd-public.common.repositories.cloud.sap/helm-operator:0.0.5
           imagePullPolicy: Always
           args:
             - --charts-root=/charts
