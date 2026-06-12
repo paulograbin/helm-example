@@ -13,7 +13,7 @@ spec:
       repository: app-fnd-public.common.repositories.cloud.sap/app-b
       tag: "0.0.3"   # bump this to trigger a new release
       pullPolicy: Always
-    replicas: 3
+    replicas: 1
     appA:
       url: "http://app-a.backend.svc.cluster.local:8080"
     resources:
