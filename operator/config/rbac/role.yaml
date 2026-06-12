@@ -24,7 +24,7 @@ rules:
   # app-a, app-b: Deployment, Service, ConfigMap, Secret, NetworkPolicy
   # postgres: StatefulSet, Service, PVC, Secret, NetworkPolicy
   - apiGroups: ["apps"]
-    resources: ["deployments", "statefulsets"]
+    resources: ["deployments", "statefulsets", "replicasets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: [""]
     resources: ["services", "configmaps", "persistentvolumeclaims", "namespaces"]
