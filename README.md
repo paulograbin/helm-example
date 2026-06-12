@@ -38,7 +38,8 @@ cross-service communication, NetworkPolicy enforcement, and a custom Kubernetes 
 - Docker
 - kubectl configured against a Kyma cluster (`export KUBECONFIG=...`)
 - Helm v3
-- Access to SAP Artifactory (`docker login common.repositories.cloud.sap`)
+- Go 1.22+ (for building the operator)
+- Access to SAP Artifactory (`docker login app-fnd-public.common.repositories.cloud.sap`)
 - A cluster with a NetworkPolicy-capable CNI (Kyma uses Calico/Cilium by default)
 
 ## Quick Start
@@ -88,8 +89,10 @@ kubectl create secret docker-registry artifactory-credentials \
 ### 3. Deploy everything
 
 ```bash
-./deploy.sh
+make deploy
 ```
+
+Or use the operator (see [Operator](#operator) section below).
 
 ### 4. Verify
 
