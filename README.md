@@ -53,24 +53,19 @@ docker login app-fnd-public.common.repositories.cloud.sap
 make push
 ```
 
-### 2. Create registry pull secrets
-
-The cluster needs credentials to pull from Artifactory.
-**Important:** use `app-fnd-public.common.repositories.cloud.sap` as the server — not the root domain.
+### 2. Create namespaces and registry pull secrets
 
 ```bash
-# Create namespaces first
 kubectl apply -f namespaces.yaml
 
-# Create the pull secret in both namespaces
 kubectl create secret docker-registry artifactory-credentials \
-  --docker-server=common.repositories.cloud.sap \
+  --docker-server=app-fnd-public.common.repositories.cloud.sap \
   --docker-username=YOUR_I_NUMBER \
   --docker-password=YOUR_ARTIFACTORY_TOKEN \
   -n backend
 
 kubectl create secret docker-registry artifactory-credentials \
-  --docker-server=common.repositories.cloud.sap \
+  --docker-server=app-fnd-public.common.repositories.cloud.sap \
   --docker-username=YOUR_I_NUMBER \
   --docker-password=YOUR_ARTIFACTORY_TOKEN \
   -n frontend
