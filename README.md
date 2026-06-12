@@ -51,22 +51,16 @@ The base image **must be built and pushed first** — app images depend on it.
 
 ```bash
 # Login to SAP Artifactory
-docker login common.repositories.cloud.sap
+docker login app-fnd-public.common.repositories.cloud.sap
 
-# Build and push the shared base image
-docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1 ./apps/base-image
-docker push common.repositories.cloud.sap/artifactory/app-fnd-public/base:0.0.1
-
-# Build and push the app images (they FROM the base image above)
-docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1 ./apps/app-a
-docker build -t common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1 ./apps/app-b
-docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-a:0.0.1
-docker push common.repositories.cloud.sap/artifactory/app-fnd-public/app-b:0.0.1
+# Build and push all images (base → app-a → app-b)
+make push
 ```
 
 ### 2. Create registry pull secrets
 
-The cluster needs credentials to pull from Artifactory:
+The cluster needs credentials to pull from Artifactory.
+**Important:** use `app-fnd-public.common.repositories.cloud.sap` as the server — not the root domain.
 
 ```bash
 # Create namespaces first
@@ -109,6 +103,13 @@ kubectl exec -n frontend deploy/app-b -- nc -zv -w3 postgres.backend.svc.cluster
 
 # Test: App A → Postgres (should SUCCEED)
 kubectl exec -n backend deploy/app-a -- nc -zv -w3 postgres.backend.svc.cluster.local 5432
+
+# Test the API
+kubectl exec -n backend deploy/app-a -- wget -qO- http://localhost:8080/items
+kubectl exec -n backend deploy/app-a -- wget -qO- \
+  --header='Content-Type: application/json' \
+  --post-data='{"name":"my-item"}' \
+  http://localhost:8080/items
 ```
 
 ## Project Structure
