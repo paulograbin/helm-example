@@ -1,4 +1,4 @@
-REGISTRY := app-fnd-public.common.repositories.cloud.sap
+REGISTRY := paulograbin
 VERSION  := 0.0.5
 PLATFORM := linux/amd64
 IMG      := $(REGISTRY)/helm-operator:$(VERSION)

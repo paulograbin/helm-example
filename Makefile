@@ -1,5 +1,5 @@
 PLATFORM := linux/amd64
-REGISTRY := app-fnd-public.common.repositories.cloud.sap
+REGISTRY := paulograbin
 VERSION  := 1.0.0
 
 .PHONY: all build push deploy clean help \

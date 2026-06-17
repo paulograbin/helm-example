@@ -2,13 +2,9 @@
 # Override with: helm install app-a ./charts/app-a -f custom-values.yaml
 
 image:
-  repository: app-fnd-public.common.repositories.cloud.sap/app-a
+  repository: paulograbin/app-a
   tag: "1.0.0"
   pullPolicy: IfNotPresent
-
-# SAP Artifactory requires authentication even for "public" repos
-imagePullSecrets:
-  - name: artifactory-credentials
 
 # Number of pod replicas — this is what gives us high availability
 replicas: 2

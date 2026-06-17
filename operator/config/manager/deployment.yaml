@@ -27,7 +27,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: manager
-          image: app-fnd-public.common.repositories.cloud.sap/helm-operator:0.0.5
+          image: paulograbin/helm-operator:0.0.5
           imagePullPolicy: Always
           args:
             - --charts-root=/charts
@@ -60,5 +60,3 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-      imagePullSecrets:
-        - name: artifactory-credentials
