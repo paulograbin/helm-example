@@ -39,36 +39,24 @@ cross-service communication, NetworkPolicy enforcement, and a custom Kubernetes 
 - kubectl configured against a Kyma cluster (`export KUBECONFIG=...`)
 - Helm v3
 - Go 1.22+ (for building the operator)
-- Access to SAP Artifactory (`docker login app-fnd-public.common.repositories.cloud.sap`)
+- Access to Docker Hub (`docker login`)
 
 ## Quick Start
 
 ### 1. Build and push Docker images
 
 ```bash
-# Login to SAP Artifactory
-docker login app-fnd-public.common.repositories.cloud.sap
+# Login to Docker Hub
+docker login
 
 # Build and push app-a and app-b
 make push
 ```
 
-### 2. Create namespaces and registry pull secrets
+### 2. Create namespaces
 
 ```bash
 kubectl apply -f namespaces.yaml
-
-kubectl create secret docker-registry artifactory-credentials \
-  --docker-server=app-fnd-public.common.repositories.cloud.sap \
-  --docker-username=YOUR_I_NUMBER \
-  --docker-password=YOUR_ARTIFACTORY_TOKEN \
-  -n backend
-
-kubectl create secret docker-registry artifactory-credentials \
-  --docker-server=app-fnd-public.common.repositories.cloud.sap \
-  --docker-username=YOUR_I_NUMBER \
-  --docker-password=YOUR_ARTIFACTORY_TOKEN \
-  -n frontend
 ```
 
 ### 3. Deploy everything
@@ -192,12 +180,6 @@ make apply-samples     # create HelmRelease CRs
 
 ```bash
 kubectl create namespace helm-operator-system
-
-kubectl create secret docker-registry artifactory-credentials \
-  --docker-server=app-fnd-public.common.repositories.cloud.sap \
-  --docker-username=YOUR_I_NUMBER \
-  --docker-password=YOUR_ARTIFACTORY_TOKEN \
-  -n helm-operator-system
 ```
 
 ### Triggering a release (app team workflow)
