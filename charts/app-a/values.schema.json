@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["image", "replicas", "service", "database", "resources", "healthCheck"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "tag", "pullPolicy"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag to deploy"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Kubernetes imagePullPolicy"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        }
+      },
+      "description": "List of image pull secrets"
+    },
+    "replicas": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of pod replicas"
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port", "type"],
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port", "name", "user", "password"],
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "PostgreSQL service name or hostname"
+        },
+        "port": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "PostgreSQL port (as string)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Database name"
+        },
+        "user": {
+          "type": "string",
+          "description": "Database user"
+        },
+        "password": {
+          "type": "string",
+          "description": "Database password"
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requests", "limits"],
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu":    { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu":    { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "initialDelaySeconds", "periodSeconds"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "HTTP path for liveness/readiness probes"
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
