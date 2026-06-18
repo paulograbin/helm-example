@@ -61,14 +61,13 @@ all-operator: docker-push deploy apply-samples  ## Full cycle: build, push, depl
 
 status-operator:  ## Show HelmRelease objects and operator pod status
 	@echo "── HelmRelease objects ──"
-	@kubectl get helmreleases -n helm-operator-system
+	@kubectl get helmreleases
 	@echo ""
 	@echo "── Operator pods ──"
-	@kubectl get pods -n helm-operator-system
+	@kubectl get pods -l app=helm-operator
 
 logs:          ## Tail operator logs
-	kubectl logs -n helm-operator-system \
-		deploy/helm-operator-controller-manager -f
+	kubectl logs deploy/helm-operator-controller-manager -f
 
 # ─── Help ─────────────────────────────────────────────────────────────────────
 

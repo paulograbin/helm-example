@@ -2,7 +2,7 @@ apiVersion: helm.example.io/v1alpha1
 kind: HelmRelease
 metadata:
   name: app-b
-  namespace: helm-operator-system
+  namespace: default
 spec:
   releaseName: app-b
   chartPath: app-b

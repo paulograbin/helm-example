@@ -5,7 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: helm-operator-controller-manager
-    namespace: helm-operator-system
+    namespace: default
 roleRef:
   kind: ClusterRole
   name: helm-operator-manager-role
